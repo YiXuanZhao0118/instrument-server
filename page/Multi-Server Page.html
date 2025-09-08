@@ -1,0 +1,1194 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Multi-Server Instrument Console</title>
+  <style>
+    :root {
+      --bg: #fff;
+      --muted: #666;
+      --line: #e5e7eb;
+      --card: #f9fafb;
+    }
+
+    body {
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      margin: 0;
+      background: var(--bg);
+    }
+
+    header {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap
+    }
+
+    h1 {
+      font-size: 18px;
+      margin: 0
+    }
+
+    main {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      min-height: calc(100vh - 56px)
+    }
+
+    aside {
+      border-right: 1px solid var(--line);
+      padding: 12px;
+      overflow: auto
+    }
+
+    section {
+      padding: 16px;
+      overflow: auto
+    }
+
+    .row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center
+    }
+
+    input,
+    select,
+    button,
+    textarea {
+      padding: 8px;
+      border: 1px solid var(--line);
+      border-radius: 8px
+    }
+
+    button {
+      cursor: pointer;
+      background: #111827;
+      color: #fff;
+      border: none
+    }
+
+    button.ghost {
+      background: #fff;
+      color: #111;
+      border: 1px solid var(--line)
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 12px
+    }
+
+    .list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 8px
+    }
+
+    .item {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px;
+      background: #fff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px
+    }
+
+    .tag {
+      font-size: 12px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: var(--card)
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 12px
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 12px;
+      background: #fff;
+      min-width: 0
+    }
+
+    pre {
+      background: #0b1020;
+      color: #e5e7eb;
+      border-radius: 8px;
+      padding: 10px;
+      overflow: auto;
+      max-height: 320px;
+      white-space: pre-wrap;
+      word-break: break-word
+    }
+
+    textarea {
+      width: 100%;
+      max-width: 100%
+    }
+
+    h4 {
+      margin: 0 0 8px
+    }
+
+    .twocol {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      align-items: start;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>Multi-Server Instrument Console</h1>
+    <span class="muted">View status, send commands, manage many servers</span>
+  </header>
+
+  <main>
+    <!-- ============ SIDEBAR ============ -->
+    <aside>
+      <div class="row">
+        <button id="btnLoadConfig" class="ghost">Load config.json</button>
+        <input id="fileConfig" type="file" accept="application/json" style="display:none">
+      </div>
+
+      <h3 style="margin-top:10px">Servers</h3>
+      <div class="row" title="Name is optional. Base is required.">
+        <input id="srvName" placeholder="Name (optional)" style="flex:1">
+        <input id="srvBase" placeholder="http://172.30.10.18:9999" style="flex:1">
+        <button id="btnAdd">Add</button>
+      </div>
+      <div class="muted" style="margin:4px 0 8px">
+        提示：Add 會立即加入清單並保存到 localStorage。
+      </div>
+
+      <details style="margin-top:8px">
+        <summary>Scan Range</summary>
+        <div class="row" style="margin-top:6px">
+          <input id="scanPrefix" value="http://172.30.10." style="flex:1">
+          <input id="scanFrom" type="number" value="18" style="width:80px">
+          <input id="scanTo" type="number" value="40" style="width:80px">
+          <input id="scanPort" type="number" value="9999" style="width:90px">
+        </div>
+        <div class="row">
+          <button id="btnScan" class="ghost">Scan /healthz</button>
+          <span class="muted">※ 需要各伺服器允許 CORS</span>
+        </div>
+      </details>
+
+      <div class="list" id="serverList" style="margin-top:8px"></div>
+
+      <div class="row" style="margin-top:10px">
+        <button id="btnSaveLocal" class="ghost" title="Save current list to browser localStorage">Save to Local</button>
+        <button id="btnExport" class="ghost" title="Download current list as config.json">Download config.json</button>
+        <button id="btnClear" class="ghost">Clear all</button>
+      </div>
+      <div class="muted" style="margin-top:4px">
+        ※ 瀏覽器無法直接改寫磁碟上的 <code>config.json</code>。如需更新，請用 Download 匯出後手動覆蓋檔案。
+      </div>
+    </aside>
+
+    <!-- ============ MAIN ============ -->
+    <section>
+      <div class="row" style="justify-content:space-between;align-items:center">
+        <div class="row">
+          <select id="activeServer" style="min-width:360px"></select>
+          <button id="btnRefresh">Refresh</button>
+          <label class="muted"><input id="autoRefresh" type="checkbox" checked> Auto 5s</label>
+        </div>
+        <div class="row">
+          <span id="pingInfo" class="tag">-</span>
+        </div>
+      </div>
+
+
+      <div class="grid" style="margin-top:12px">
+        <div class="twocol">
+
+          <!-- 左側：Drivers -->
+          <div class="card">
+            <h3 style="margin:0 0 8px">Drivers</h3>
+            <div class="row">
+              <button id="btnDrivers">Load</button>
+              <button id="btnRescan" class="ghost">Rescan</button>
+            </div>
+            <pre id="outDrivers"></pre>
+          </div>
+
+          <!-- 右側：Instruments -->
+          <div class="card">
+            <h3 style="margin:0 0 8px">Instruments</h3>
+            <div class="row">
+              <button id="btnInstruments">List</button>
+              <select id="instSelect" style="min-width:220px"></select>
+              <button id="btnConnect" class="ghost">Connect</button>
+              <button id="btnDisconnect" class="ghost">Disconnect</button>
+              <button id="btnReconnect" class="ghost">Reconnect</button>
+              <button id="btnDelete" class="ghost">Delete</button>
+            </div>
+            <pre id="outInstruments"></pre>
+          </div>
+
+        </div>
+      </div>
+
+
+
+      <h3 style="margin:0 0 8px"></h3>
+
+      <!-- Add Driver (.py) -->
+      <div class="card" style="grid-column:1/-1">
+        <h3 style="margin:0 0 8px">Add Driver (.py)</h3>
+        <div class="row">
+          <input id="drvSaveAs" placeholder="Save as (filename without .py), optional" style="min-width:260px">
+          <label class="muted"><input id="drvOverwrite" type="checkbox"> Overwrite if exists</label>
+          <input id="fileDriver" type="file" accept=".py" />
+          <button id="btnValidate" class="ghost">Validate</button>
+          <button id="btnUpload">Upload</button>
+        </div>
+        <div class="muted" id="drvMeta"></div>
+        <pre id="outDrvCheck"></pre>
+        <pre id="outUpload"></pre>
+      </div>
+
+      <h3 style="margin:0 0 8px"></h3>
+
+      <!-- Create Instrument (no duplicate name) -->
+      <div class="card" style="grid-column:1/-1">
+        <h3 style="margin:0 0 8px">Create Instrument (no duplicate name)</h3>
+        <div class="row">
+          <input id="newName" placeholder="Name e.g. HF1">
+          <select id="driverSelect" title="Choose a driver"></select>
+          <label>connect?
+            <select id="newConnect">
+              <option>true</option>
+              <option>false</option>
+            </select>
+          </label>
+        </div>
+
+        <!-- init_args -->
+        <div class="card">
+          <h4>init_args (positional)</h4>
+          <div id="initArgsWrap" class="row" style="flex-wrap:wrap"></div>
+        </div>
+
+        <!-- init_kwargs -->
+        <div class="card">
+          <h4>init_kwargs (keyword)</h4>
+          <div id="initKwargsWrap" class="row" style="flex-wrap:wrap"></div>
+        </div>
+
+        <!-- capabilities -->
+        <div class="card">
+          <h4>capabilities (call after connect)</h4>
+          <div id="capsWrap" class="row" style="flex-direction:column; gap:8px; align-items:stretch"></div>
+          <button id="btnAddCap" class="ghost">+ Add Capability</button>
+        </div>
+
+        <div class="row">
+          <button id="btnCreate">Create</button>
+        </div>
+        <pre id="outCreate"></pre>
+      </div>
+
+      <h3 style="margin:0 0 8px"></h3>
+
+      <!-- RPC -->
+      <div class="card" style="grid-column:1/-1">
+        <h3 style="margin:0 0 8px">RPC</h3>
+        <div class="row">
+          <select id="rpcInstrumentSel" style="min-width:260px"></select>
+          <select id="rpcCommandSel" style="min-width:280px"></select>
+          <span id="rpcSig" class="muted"></span>
+        </div>
+        <div class="row">
+          <textarea id="rpcArgs" rows="2" placeholder='args JSON, e.g. []'></textarea>
+          <textarea id="rpcKwargs" rows="2" placeholder='kwargs JSON, e.g. {}'></textarea>
+        </div>
+        <div class="muted" id="rpcDoc" style="white-space:pre-wrap"></div>
+        <div class="row">
+          <button id="btnRPC">Send RPC</button>
+        </div>
+        <pre id="outRPC"></pre>
+      </div>
+
+      <h3 style="margin:0 0 8px"></h3>
+
+      <!-- Edit Instrument -->
+      <div class="card" id="editCard" style="grid-column:1/-1">
+        <h3 style="margin:0 0 8px">Edit Instrument</h3>
+        <div class="row">
+          <select id="editInstSel" style="min-width:260px"></select>
+          <button id="btnEditLoad" class="ghost">Load Selected</button>
+        </div>
+
+        <div class="row" style="margin-top:6px">
+          <input id="editName" placeholder="Name">
+          <label>Driver
+            <select id="editDriverSelect" title="Driver"></select>
+          </label>
+          <label>connect?
+            <select id="editConnect">
+              <option>true</option>
+              <option>false</option>
+            </select>
+          </label>
+        </div>
+
+        <!-- init_args -->
+        <div class="card" style="margin-top:8px">
+          <h4>init_args (positional)</h4>
+          <div id="editInitArgsWrap" class="row" style="flex-wrap:wrap"></div>
+        </div>
+
+        <!-- init_kwargs -->
+        <div class="card" style="margin-top:8px">
+          <h4>init_kwargs (keyword)</h4>
+          <div id="editInitKwargsWrap" class="row" style="flex-wrap:wrap"></div>
+        </div>
+
+        <!-- capabilities -->
+        <div class="card" style="margin-top:8px">
+          <h4>capabilities (call after connect)</h4>
+          <div id="editCapsWrap" class="row" style="flex-direction:column; gap:8px; align-items:stretch"></div>
+          <button id="btnEditAddCap" class="ghost">+ Add Capability</button>
+        </div>
+
+        <div class="row" style="margin-top:8px">
+          <button id="btnEditSave">Save Changes</button>
+        </div>
+        <pre id="outEdit"></pre>
+      </div>
+
+    </section>
+  </main>
+
+  <script>
+    /** ---------- state & utils ---------- **/
+    const $ = (id) => document.getElementById(id);
+    const out = (el, data) => el.textContent = (typeof data === 'string') ? data : JSON.stringify(data, null, 2);
+
+    let servers = [];        // [{name, base}]
+    let active = null;       // base url
+    let pollTimer = null;
+
+    let driversCache = [];   // from /drivers
+    let instrumentsCache = [];
+
+    /** local storage **/
+    function saveLocal() { localStorage.setItem('ic_servers', JSON.stringify(servers)); }
+    function loadLocal() { try { const raw = localStorage.getItem('ic_servers'); if (raw) { servers = JSON.parse(raw) || []; } } catch (_) { } }
+
+    function setServers(list) {
+      servers = (list || []).filter(x => x && x.base);
+      saveLocal();
+      renderServers();
+      rebuildActiveSelect();
+    }
+    function addServer(item) {
+      if (!item || !item.base) return;
+      if (!item.name) item.name = item.base;
+      item.base = item.base.replace(/\/+$/, ''); // normalize
+      if (servers.find(s => s.base === item.base)) return; // avoid dup
+      servers.push(item);
+      setServers(servers);
+    }
+    function removeServer(base) {
+      servers = servers.filter(s => s.base !== base);
+      if (active === base) active = servers[0]?.base || null;
+      setServers(servers);
+    }
+    function renderServers() {
+      const wrap = $('serverList'); wrap.innerHTML = '';
+      servers.forEach(s => {
+        const div = document.createElement('div'); div.className = 'item';
+        const left = document.createElement('div');
+        left.innerHTML = `<div><strong>${s.name || ''}</strong></div><div class="muted">${s.base}</div>`;
+        const right = document.createElement('div');
+        const use = document.createElement('button'); use.textContent = 'Use'; use.className = 'ghost';
+        use.onclick = () => { active = s.base; rebuildActiveSelect(); refreshAll(); };
+        const del = document.createElement('button'); del.textContent = 'Del'; del.className = 'ghost';
+        del.onclick = () => removeServer(s.base);
+        right.append(use, del);
+        div.append(left, right);
+        wrap.append(div);
+      });
+    }
+    function rebuildActiveSelect() {
+      const sel = $('activeServer'); sel.innerHTML = '';
+      servers.forEach(s => sel.add(new Option(`${s.name || ''} ${s.base}`, s.base)));
+      if (active && servers.find(s => s.base === active)) {
+        sel.value = active;
+      } else {
+        active = sel.value || servers[0]?.base || null;
+      }
+    }
+
+    /** fetch with timeout **/
+    async function jget(path, method = 'GET', body = null, base = active, timeout = 15000) {
+      if (!base) throw new Error('No active server');
+      const ctrl = new AbortController();
+      const t = setTimeout(() => ctrl.abort('timeout'), timeout);
+      const r = await fetch(`${base}${path}`, {
+        method, headers: { 'Content-Type': 'application/json' },
+        body: body ? JSON.stringify(body) : null, signal: ctrl.signal,
+        mode: 'cors',
+      });
+      clearTimeout(t);
+      const ct = r.headers.get('content-type') || '';
+      if (!r.ok) {
+        const txt = ct.includes('application/json') ? JSON.stringify(await r.json()) : await r.text();
+        throw new Error(`${r.status} ${r.statusText} - ${txt}`);
+      }
+      return ct.includes('application/json') ? r.json() : r.text();
+    }
+
+    /** ---------- sidebar handlers ---------- **/
+    $('btnLoadConfig').onclick = () => $('fileConfig').click();
+    $('fileConfig').onchange = async (e) => {
+      const f = e.target.files[0]; if (!f) return;
+      try {
+        const txt = await f.text();
+        const cfg = JSON.parse(txt);
+        if (Array.isArray(cfg?.servers)) {
+          const merged = [...servers];
+          for (const s of cfg.servers) {
+            if (s?.base) {
+              const base = String(s.base).replace(/\/+$/, '');
+              if (!merged.find(x => x.base === base)) {
+                merged.push({ name: s.name || base, base });
+              }
+            }
+          }
+          setServers(merged);
+          alert('Loaded servers from config.json');
+        } else {
+          alert('Invalid config.json: missing "servers" array');
+        }
+      } catch (err) {
+        alert('Failed to parse config.json: ' + err);
+      }
+    };
+
+    $('btnAdd').onclick = () => {
+      const name = $('srvName').value.trim();
+      const base = $('srvBase').value.trim();
+      if (!base) { alert('Base URL is required'); return; }
+      addServer({ name, base });
+      $('srvName').value = ''; $('srvBase').value = '';
+      active = base.replace(/\/+$/, '');
+      rebuildActiveSelect();
+      refreshAll();
+    };
+
+    $('btnSaveLocal').onclick = () => { saveLocal(); alert('Saved to browser localStorage.'); };
+
+    $('btnExport').onclick = () => {
+      const payload = { servers: servers.map(s => ({ name: s.name, base: s.base })) };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+      a.download = 'config.json'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(a.href);
+    };
+
+    $('btnClear').onclick = () => {
+      if (!confirm('Clear all servers from localStorage and UI?')) return;
+      localStorage.removeItem('ic_servers'); servers = []; active = null;
+      renderServers(); rebuildActiveSelect();
+      out($('outDrivers'), ''); out($('outInstruments'), ''); out($('outCreate'), ''); out($('outRPC'), ''); out($('outDrvCheck'), ''); out($('outUpload'), ''); out($('outEdit'), '');
+      $('instSelect').innerHTML = ''; $('driverSelect').innerHTML = ''; $('rpcInstrumentSel').innerHTML = ''; $('rpcCommandSel').innerHTML = ''; $('editInstSel').innerHTML = ''; $('editDriverSelect').innerHTML = '';
+    };
+
+    /** scan range **/
+    $('btnScan').onclick = async () => {
+      const pref = $('scanPrefix').value.trim(); const a = +$('scanFrom').value; const b = +$('scanTo').value; const port = +$('scanPort').value;
+      let found = 0;
+      for (let i = a; i <= b; i++) {
+        const base = `${pref}${i}:${port}`;
+        try {
+          const r = await fetch(`${base.replace(/\/+$/, '')}/healthz`, { method: 'GET', mode: 'cors' });
+          if (r.ok) { addServer({ name: `Auto-${i}`, base }); found++; }
+        } catch (_) { /* ignore */ }
+      }
+      alert(found ? `Found ${found} server(s)` : 'No server found');
+    };
+
+    /** ---------- top row ---------- **/
+    $('activeServer').onchange = () => { active = $('activeServer').value; refreshAll(); };
+    $('btnRefresh').onclick = refreshAll;
+    $('autoRefresh').onchange = () => { if ($('autoRefresh').checked) { startAuto(); } else { stopAuto(); } };
+
+    /** ---------- Drivers ---------- **/
+    $('btnDrivers').onclick = async () => {
+      try {
+        const j = await jget('/drivers');
+        driversCache = Array.isArray(j) ? j : [];
+        out($('outDrivers'), j);
+
+        // Fill driver selects (create & edit)
+        const ds = $('driverSelect'); ds.innerHTML = '';
+        const ed = $('editDriverSelect'); ed.innerHTML = '';
+        driversCache.forEach(d => {
+          const label = `${d.name} (${d.id.slice(0, 8)})`;
+          ds.add(new Option(label, d.id));
+          ed.add(new Option(label, d.id));
+        });
+
+        // trigger UI for create side
+        onDriverChange();
+      } catch (e) { out($('outDrivers'), String(e)); }
+    };
+    $('btnRescan').onclick = async () => {
+      try {
+        const j = await jget('/drivers/scan', 'POST');
+        out($('outDrivers'), j);
+        $('btnDrivers').click();
+      } catch (e) { out($('outDrivers'), String(e)); }
+    };
+
+    $('driverSelect').onchange = onDriverChange;
+    function onDriverChange() {
+      const did = $('driverSelect').value;
+      const drv = driversCache.find(d => d.id === did);
+      $('initArgsWrap').innerHTML = '';
+      $('initKwargsWrap').innerHTML = '';
+      $('capsWrap').innerHTML = '';
+      if (!drv || !drv.meta) return;
+      renderInitParams(drv.meta, 'initArgsWrap', 'initKwargsWrap');
+      renderCapsUI(drv.meta, 'capsWrap', 'btnAddCap');
+    }
+
+    /** ---------- ADD DRIVER: validation + upload ---------- **/
+    let drvFile = null;
+
+    function readText(file) { return file.text(); }
+
+    function validateDriverText(txt) {
+      const classes = [...txt.matchAll(/class\s+([A-Za-z_]\w*)\s*(?:\([^\)]*\))?\s*:/g)].map(m => m[1]);
+      const hasClass = classes.length > 0;
+      const hasInit = /def\s+initialize\s*\(/.test(txt);
+      const hasShutdown = /def\s+shutdown\s*\(/.test(txt);
+      const hasIsOpened = /def\s+is_open(?:ed)?\s*\(/.test(txt);
+      const functions = [...txt.matchAll(/\ndef\s+([A-Za-z_]\w*)\s*\(/g)].map(m => m[1]);
+
+      // align with backend REQUIRED_METHODS = {"initialize","shutdown","is_opened"}
+      const ok = hasClass && hasInit && hasShutdown && hasIsOpened;
+
+      const warn = [];
+      if (!hasClass) warn.push('No class definitions found.');
+      if (!hasInit) warn.push('No initialize() found.');
+      if (!hasShutdown) warn.push('No shutdown() found.');
+      if (!hasIsOpened) warn.push('No is_opened() / is_open() found.');
+
+      return { ok, classes, hasInit, hasShutdown, hasIsOpened, functions, warn };
+    }
+
+    async function validateCurrentDriver() {
+      if (!drvFile) { alert('Please choose a .py file first.'); return; }
+      if (!/\.py$/i.test(drvFile.name)) { alert('File must be a .py'); return; }
+
+      const txt = await readText(drvFile);
+      const info = validateDriverText(txt);
+
+      const saveAs = ($('drvSaveAs').value.trim() || drvFile.name.replace(/\.py$/i, ''))
+        .replace(/[^A-Za-z0-9_]/g, '_');
+
+      const report = {
+        filename: drvFile.name,
+        will_save_as: (saveAs || 'driver') + '.py',
+        device_classes: info.deviceClasses,
+        has_initialize: info.hasInit,
+        has_is_opened: info.hasIsOpened,
+        sample_functions_found: info.functions.slice(0, 20)
+      };
+      out($('outDrvCheck'), report);
+
+      if (!info.ok) {
+        $('outUpload').textContent = 'Validation failed: ' + (info.warn.join(' ') || 'Unknown reason');
+      } else {
+        $('outUpload').textContent = 'Validation OK. You can Upload.';
+      }
+    }
+
+    // bind file input
+    $('fileDriver').addEventListener('change', async (e) => {
+      drvFile = e.target.files?.[0] || null;
+      $('outUpload').textContent = '';
+      if (!drvFile) {
+        $('drvMeta').textContent = 'No file selected';
+        out($('outDrvCheck'), '');
+        return;
+      }
+      $('drvMeta').textContent = `${drvFile.name} • ${Math.round(drvFile.size / 1024)} KB`;
+      try { await validateCurrentDriver(); } catch (_) { }
+    });
+
+    // bind Validate button
+    $('btnValidate').onclick = validateCurrentDriver;
+
+    async function driverFileExists(fname) {
+      try {
+        const list = await jget('/drivers');
+        const lc = (s) => String(s || '').toLowerCase();
+        return Array.isArray(list) && list.some(d => {
+          return lc(d.file) === lc(fname) || lc(d.filename) === lc(fname);
+        });
+      } catch (_) { return false; }
+    }
+
+    async function uploadDriver() {
+      if (!drvFile) return alert('Please choose a .py file first.');
+      const txt = await readText(drvFile);
+      const check = validateDriverText(txt);
+      if (!check.ok) { alert('Driver invalid. Need *Device class + initialize().'); return; }
+
+      const baseName = ($('drvSaveAs').value.trim() || drvFile.name.replace(/\.py$/i, '')).replace(/[^A-Za-z0-9_]/g, '_');
+      const filename = baseName.endsWith('.py') ? baseName : (baseName + '.py');
+      const wantOverwrite = $('drvOverwrite').checked;
+
+      const payload = { filename, content: txt, overwrite: wantOverwrite };
+      try {
+        // **改成 PUT /drivers/file**
+        const res = await jget('/drivers/file', 'PUT', payload);
+        out($('outUpload'), res);
+        await jget('/drivers/scan', 'POST');
+        $('btnDrivers').click();
+      } catch (e) {
+        out($('outUpload'), 'Upload failed: ' + String(e));
+      }
+    }
+    // bind Upload button
+    $('btnUpload').onclick = uploadDriver;
+
+    /** ---------- param & caps UI builders (generic) ---------- **/
+    function renderInitParams(meta, argsWrapId, kwargsWrapId) {
+      const argsWrap = $(argsWrapId);
+      const kwargsWrap = $(kwargsWrapId);
+      if (!argsWrap || !kwargsWrap) return;
+
+      if (meta.class_doc) {
+        argsWrap.title = meta.class_doc;
+        kwargsWrap.title = meta.class_doc;
+      }
+
+      (meta.init?.positional_args || []).forEach((p, idx) => {
+        const block = makeControlForParam(p, { kind: 'pos', index: idx });
+        argsWrap.appendChild(block);
+      });
+
+      (meta.init?.keyword_args || []).forEach(k => {
+        const block = makeControlForParam(k, { kind: 'kw' });
+        kwargsWrap.appendChild(block);
+      });
+    }
+
+    function makeControlForParam(p, { kind, index } = {}) {
+      const wrap = document.createElement('div');
+      wrap.className = 'row';
+      wrap.style.alignItems = 'center';
+
+      const label = document.createElement('label');
+      label.style.minWidth = '160px';
+      label.textContent = (kind === 'pos' ? `#${(index || 0) + 1} ` : '') + (p.name || '');
+
+      let ctrl;
+      if (Array.isArray(p.choices) && p.choices.length) {
+        ctrl = document.createElement('select');
+        ctrl.appendChild(new Option('', ''));
+        p.choices.forEach(c => ctrl.appendChild(new Option(c, c)));
+        if (p.default) ctrl.value = stripQuotes(p.default);
+        ctrl.title = (p.type || 'Literal') + (p.default ? ` (default: ${p.default})` : '');
+      } else if ((p.type || '').toLowerCase() === 'bool' || (p.type || '').toLowerCase() === 'boolean') {
+        ctrl = document.createElement('input');
+        ctrl.type = 'checkbox';
+        ctrl.checked = p.default === 'True' || p.default === 'true' || p.default === '1';
+        ctrl.title = (p.type || 'bool');
+      } else {
+        ctrl = document.createElement('input');
+        ctrl.placeholder = p.default != null ? `${p.name} (default: ${p.default})` : (p.name || '');
+        ctrl.title = (p.type || '') + (p.default != null ? ` (default: ${p.default})` : '');
+      }
+
+      ctrl.dataset.paramName = p.name || (kind === 'pos' ? `arg${index || 0}` : '');
+      ctrl.dataset.paramType = (p.type || '').toLowerCase();
+      if (kind === 'pos') ctrl.dataset.paramIndex = String(index || 0);
+
+      ctrl.style.minWidth = '220px';
+
+      wrap.append(label, ctrl);
+      return wrap;
+    }
+
+    function renderCapsUI(meta, wrapId, addBtnId) {
+      const addBtn = $(addBtnId);
+      const wrap = $(wrapId);
+      if (!addBtn || !wrap) return;
+
+      addBtn.onclick = () => addCapRow(meta, wrapId);
+      addCapRow(meta, wrapId);
+    }
+
+    function addCapRow(meta, wrapId, capItem = null) {
+      const wrap = $(wrapId); if (!wrap) return;
+
+      const row = document.createElement('div');
+      row.className = 'card';
+      row.style.display = 'grid';
+      row.style.gridTemplateColumns = 'minmax(220px, 1fr) 1fr 1fr auto';
+      row.style.gap = '8px';
+      row.style.alignItems = 'center';
+
+      const sel = document.createElement('select');
+      const none = new Option('-- choose function --', '');
+      sel.add(none);
+      (meta.functions || []).forEach(f => {
+        const opt = new Option(f.name, f.name);
+        opt.title = f.doc || '';
+        sel.add(opt);
+      });
+
+      const args = document.createElement('input');
+      args.placeholder = 'args JSON, e.g. []';
+      args.style.minWidth = '180px';
+
+      const kwargs = document.createElement('input');
+      kwargs.placeholder = 'kwargs JSON, e.g. {}';
+      kwargs.style.minWidth = '180px';
+
+      const del = document.createElement('button');
+      del.className = 'ghost';
+      del.textContent = 'Remove';
+      del.onclick = () => row.remove();
+
+      sel.onchange = () => {
+        const f = (meta.functions || []).find(x => x.name === sel.value);
+        const sig = f?.signature || '';
+        sel.title = f?.doc || '';
+        args.title = f?.doc || '';
+        kwargs.title = f?.doc || '';
+
+        // 依參數清單打造 placeholder：必填→args[]，選填→kwargs{}
+        const params = f?.params || [];
+        const required = params.filter(p => p.default == null).map(p => p.name).filter(Boolean);
+        const optional = params.filter(p => p.default != null);
+
+        args.placeholder = required.length
+          ? `args JSON, e.g. [${required.join(', ')}]`
+          : 'args JSON, e.g. []';
+
+        if (optional.length) {
+          const eg = optional.slice(0, 3)
+            .map(p => `${p.name}: ${p.default ?? '...'}`)
+            .join(', ');
+          kwargs.placeholder = `kwargs JSON, e.g. { ${eg} }`;
+        } else {
+          kwargs.placeholder = 'kwargs JSON, e.g. {}';
+        }
+      };
+
+      if (capItem) {
+        sel.value = capItem.driver || '';
+        args.value = JSON.stringify(capItem.args ?? []);
+        kwargs.value = JSON.stringify(capItem.kwargs ?? {});
+        sel.dispatchEvent(new Event('change'));
+      }
+
+      row.append(sel, args, kwargs, del);
+      wrap.appendChild(row);
+    }
+
+    function stripQuotes(s) {
+      if (!s) return s;
+      if ((s.startsWith('"') && s.endsWith('"')) || (s.startsWith("'") && s.endsWith("'"))) {
+        return s.slice(1, -1);
+      }
+      return s;
+    }
+
+    /** ---------- Instruments panel ---------- **/
+    $('btnInstruments').onclick = async () => {
+      try {
+        const j = await jget('/instruments');
+        instrumentsCache = Array.isArray(j) ? j : [];
+        out($('outInstruments'), j);
+
+        const sel = $('instSelect'); sel.innerHTML = '';
+        instrumentsCache.forEach(i => sel.add(new Option(`${i.name} (${i.id.slice(0, 8)})`, i.id)));
+
+        // RPC instruments
+        const rsel = $('rpcInstrumentSel'); rsel.innerHTML = '';
+        instrumentsCache.forEach(i => rsel.add(new Option(`${i.name} (${i.id.slice(0, 8)})`, i.id)));
+        if (instrumentsCache[0]) rsel.value = instrumentsCache[0].id;
+        rebuildRpcCommands();
+
+        // Edit instruments
+        const es = $('editInstSel'); es.innerHTML = '';
+        instrumentsCache.forEach(i => es.add(new Option(`${i.name} (${i.id.slice(0, 8)})`, i.id)));
+      } catch (e) { out($('outInstruments'), String(e)); }
+    };
+    $('btnConnect').onclick = async () => actionInst('connect');
+    $('btnDisconnect').onclick = async () => actionInst('disconnect');
+    $('btnReconnect').onclick = async () => actionInst('reconnect');
+    $('btnDelete').onclick = async () => actionInst('delete');
+
+    async function actionInst(kind) {
+      const id = $('instSelect').value;
+      if (!id) return alert('Select an instrument');
+      try {
+        let res;
+        if (kind === 'delete') { res = await jget(`/instruments/${encodeURIComponent(id)}`, 'DELETE'); }
+        else { res = await jget(`/instruments/${encodeURIComponent(id)}/${kind}`, 'POST'); }
+        out($('outInstruments'), res);
+        $('btnInstruments').click();
+      } catch (e) { out($('outInstruments'), String(e)); }
+    }
+
+    /** ---------- Create instrument (with init_args/kwargs/caps) ---------- **/
+    $('btnCreate').onclick = async () => {
+      const name = $('newName').value.trim();
+      const driverId = $('driverSelect').value;
+      const connect = ($('newConnect').value === 'true');
+      if (!name || !driverId) return alert('Name and driverId are required');
+
+      // prevent duplicate name
+      const sameName = instrumentsCache.find(i => i.name === name);
+      if (sameName) {
+        alert('Name already exists. Please use "Edit Instrument" below to modify an existing device.');
+        return;
+      }
+
+      // collect positional args (skip empty)
+      const init_args = [];
+      [...$('initArgsWrap').querySelectorAll('[data-param-name]')].forEach(ctrl => {
+        const v = readControlValue(ctrl);
+        if (v !== undefined && v !== '') init_args.push(v);
+      });
+
+      // collect keyword args (skip empty)
+      const init_kwargs = {};
+      [...$('initKwargsWrap').querySelectorAll('[data-param-name]')].forEach(ctrl => {
+        const key = ctrl.dataset.paramName;
+        const v = readControlValue(ctrl);
+        if (v !== undefined && v !== '') init_kwargs[key] = v;
+      });
+
+      // collect capabilities
+      const caps = [];
+      const rows = [...document.querySelectorAll('#capsWrap .card')];
+      rows.forEach(row => {
+        const sel = row.querySelector('select');
+        const a = row.querySelector('input[placeholder^="args"]')?.value || '[]';
+        const k = row.querySelector('input[placeholder^="kwargs"]')?.value || '{}';
+        let args = []; let kwargs = {};
+        try { args = JSON.parse(a); } catch (_) { }
+        try { kwargs = JSON.parse(k); } catch (_) { }
+        if (sel?.value) caps.push({ driver: sel.value, args, kwargs });
+      });
+
+      function readControlValue(ctrl) {
+        const t = ctrl.dataset.paramType || '';
+        if (ctrl.tagName === 'SELECT') {
+          return ctrl.value === '' ? undefined : coerce(ctrl.value, t);
+        }
+        if (ctrl.type === 'checkbox') return !!ctrl.checked;
+        const raw = ctrl.value.trim();
+        if (!raw) return undefined;
+        return coerce(raw, t);
+      }
+      function coerce(val, t) {
+        if (t === 'bool' || t === 'boolean') {
+          if (typeof val === 'boolean') return val;
+          return ['1', 'true', 'True', 'yes', 'on'].includes(String(val));
+        }
+        try { return JSON.parse(val); } catch (_) { }
+        const n = Number(val);
+        if (!Number.isNaN(n) && val !== '') return n;
+        return val;
+      }
+
+      try {
+        const body = { name, driverId, connect, init_args, init_kwargs, capabilities: caps };
+        const j = await jget('/instruments', 'PUT', body);
+        out($('outCreate'), j);
+        $('btnInstruments').click();
+      } catch (e) { out($('outCreate'), String(e)); }
+    };
+
+    /** ---------- RPC (selection-based with signature/doc) ---------- **/
+    $('rpcInstrumentSel').onchange = rebuildRpcCommands;
+
+    function rebuildRpcCommands() {
+      const instId = $('rpcInstrumentSel').value;
+      const cmdSel = $('rpcCommandSel');
+      const sigOut = $('rpcSig');
+      const docOut = $('rpcDoc');
+
+      cmdSel.innerHTML = '';
+      sigOut.textContent = '';
+      docOut.textContent = '';
+
+      if (!instId) return;
+      const inst = instrumentsCache.find(i => i.id === instId);
+      if (!inst) return;
+
+      const drv = driversCache.find(d => d.id === inst.driverId);
+      if (!drv || !drv.meta) return;
+
+      (drv.meta.functions || []).forEach(f => {
+        const opt = new Option(f.name, f.name);
+        opt.title = f.doc || '';
+        cmdSel.add(opt);
+      });
+
+      cmdSel.onchange = () => {
+        const f = (drv.meta.functions || []).find(x => x.name === cmdSel.value);
+        const sig = f?.signature || '';
+        sigOut.textContent = sig;              // 簽名照樣顯示給使用者參考
+        docOut.textContent = f?.doc || '';
+        cmdSel.title = f?.doc || '';
+
+        const params = f?.params || [];
+        const required = params.filter(p => p.default == null).map(p => p.name).filter(Boolean);
+        const optional = params.filter(p => p.default != null);
+
+        $('rpcArgs').placeholder = required.length
+          ? `args JSON, e.g. [${required.join(', ')}]`
+          : 'args JSON, e.g. []';
+
+        if (optional.length) {
+          const eg = optional.slice(0, 3)
+            .map(p => `${p.name}: ${p.default ?? '...'}`)
+            .join(', ');
+          $('rpcKwargs').placeholder = `kwargs JSON, e.g. { ${eg} }`;
+        } else {
+          $('rpcKwargs').placeholder = 'kwargs JSON, e.g. {}';
+        }
+      };
+
+      if (cmdSel.options.length) cmdSel.selectedIndex = 0;
+      cmdSel.dispatchEvent(new Event('change'));
+    }
+
+    $('btnRPC').onclick = async () => {
+      const instrument = $('rpcInstrumentSel').value;
+      const command = $('rpcCommandSel').value;
+      let args = [], kwargs = {};
+      try { args = JSON.parse($('rpcArgs').value || '[]'); } catch (_) { return alert('args JSON invalid'); }
+      try { kwargs = JSON.parse($('rpcKwargs').value || '{}'); } catch (_) { return alert('kwargs JSON invalid'); }
+      if (!instrument || !command) return alert('instrument & command required');
+      try {
+        const j = await jget('/rpc', 'POST', { instrument, command, args, kwargs });
+        out($('outRPC'), j);
+      } catch (e) { out($('outRPC'), String(e)); }
+    };
+
+    /** ---------- Edit instrument (with init_args/kwargs/caps) ---------- **/
+    $('btnEditLoad').onclick = async () => {
+      const id = $('editInstSel').value;
+      if (!id) return alert('Select an instrument to load.');
+      try {
+        const it = instrumentsCache.find(x => x.id === id);
+        if (!it) return alert('Instrument not found.');
+
+        $('editName').value = it.name || '';
+        $('editConnect').value = (it.connect === false ? 'false' : 'true');
+
+        // Ensure drivers loaded, then select current driver
+        if (!driversCache.length) { try { await $('btnDrivers').onclick(); } catch (_) { } }
+        const edsel = $('editDriverSelect');
+        if (edsel) edsel.value = it.driverId || '';
+
+        // Build param/caps UI from the selected driver meta
+        const drv = driversCache.find(d => d.id === (edsel.value || it.driverId));
+        const meta = drv?.meta || null;
+        $('editInitArgsWrap').innerHTML = '';
+        $('editInitKwargsWrap').innerHTML = '';
+        $('editCapsWrap').innerHTML = '';
+        if (meta) {
+          renderInitParams(meta, 'editInitArgsWrap', 'editInitKwargsWrap');
+          // fill existing values
+          fillEditValues(meta, it);
+          renderCapsForEdit(meta, it);
+        }
+        out($('outEdit'), it);
+      } catch (e) { out($('outEdit'), String(e)); }
+    };
+
+    $('editDriverSelect').onchange = () => {
+      // When driver changes in Edit, rebuild forms for new driver (clear values)
+      const edsel = $('editDriverSelect');
+      const drv = driversCache.find(d => d.id === edsel.value);
+      const meta = drv?.meta || null;
+      $('editInitArgsWrap').innerHTML = '';
+      $('editInitKwargsWrap').innerHTML = '';
+      $('editCapsWrap').innerHTML = '';
+      if (meta) {
+        renderInitParams(meta, 'editInitArgsWrap', 'editInitKwargsWrap');
+        renderCapsUI(meta, 'editCapsWrap', 'btnEditAddCap');
+      }
+    };
+
+    function fillEditValues(meta, inst) {
+      const argVals = Array.isArray(inst?.init_args) ? inst.init_args : [];
+      [...$('editInitArgsWrap').querySelectorAll('[data-param-name]')].forEach(ctrl => {
+        const idx = Number(ctrl.dataset.paramIndex || '0');
+        const v = argVals[idx];
+        if (v === undefined) return;
+        if (ctrl.type === 'checkbox') ctrl.checked = !!v;
+        else ctrl.value = (typeof v === 'string') ? v : JSON.stringify(v);
+      });
+
+      const kwVals = (inst?.init_kwargs && typeof inst.init_kwargs === 'object') ? inst.init_kwargs : {};
+      [...$('editInitKwargsWrap').querySelectorAll('[data-param-name]')].forEach(ctrl => {
+        const key = ctrl.dataset.paramName;
+        const v = kwVals[key];
+        if (v === undefined) return;
+        if (ctrl.type === 'checkbox') ctrl.checked = !!v;
+        else ctrl.value = (typeof v === 'string') ? v : JSON.stringify(v);
+      });
+    }
+
+    function renderCapsForEdit(meta, inst) {
+      const wrapId = 'editCapsWrap';
+      const caps = Array.isArray(inst?.capabilities) ? inst.capabilities : [];
+      if (caps.length === 0) addCapRow(meta, wrapId, null);
+      else caps.forEach(c => addCapRow(meta, wrapId, c));
+      $('btnEditAddCap').onclick = () => addCapRow(meta, wrapId, null);
+    }
+
+    $('btnEditSave').onclick = async () => {
+      const id = $('editInstSel').value;
+      if (!id) return alert('Select an instrument first.');
+
+      const name = $('editName').value.trim();
+      const connect = ($('editConnect').value === 'true');
+      const driverId = $('editDriverSelect').value;
+      if (!name || !driverId) return alert('Name and driverId are required');
+
+      // collect positional args
+      const init_args = [];
+      [...$('editInitArgsWrap').querySelectorAll('[data-param-name]')].forEach(ctrl => {
+        const v = readEditControlValue(ctrl);
+        if (v !== undefined && v !== '') init_args.push(v);
+      });
+
+      // collect keyword args
+      const init_kwargs = {};
+      [...$('editInitKwargsWrap').querySelectorAll('[data-param-name]')].forEach(ctrl => {
+        const key = ctrl.dataset.paramName;
+        const v = readEditControlValue(ctrl);
+        if (v !== undefined && v !== '') init_kwargs[key] = v;
+      });
+
+      // collect capabilities
+      const caps = [];
+      const rows = [...document.querySelectorAll('#editCapsWrap .card')];
+      rows.forEach(row => {
+        const sel = row.querySelector('select');
+        const a = row.querySelector('input[placeholder^="args"]')?.value || '[]';
+        const k = row.querySelector('input[placeholder^="kwargs"]')?.value || '{}';
+        let args = []; let kwargs = {};
+        try { args = JSON.parse(a); } catch (_) { }
+        try { kwargs = JSON.parse(k); } catch (_) { }
+        if (sel?.value) caps.push({ driver: sel.value, args, kwargs });
+      });
+
+      function readEditControlValue(ctrl) {
+        const t = ctrl.dataset.paramType || '';
+        if (ctrl.tagName === 'SELECT') {
+          return ctrl.value === '' ? undefined : coerceEdit(ctrl.value, t);
+        }
+        if (ctrl.type === 'checkbox') return !!ctrl.checked;
+        const raw = ctrl.value.trim();
+        if (!raw) return undefined;
+        return coerceEdit(raw, t);
+      }
+      function coerceEdit(val, t) {
+        if (t === 'bool' || t === 'boolean') {
+          if (typeof val === 'boolean') return val;
+          return ['1', 'true', 'True', 'yes', 'on'].includes(String(val));
+        }
+        try { return JSON.parse(val); } catch (_) { }
+        const n = Number(val);
+        if (!Number.isNaN(n) && val !== '') return n;
+        return val;
+      }
+
+      try {
+        const body = { id, name, driverId, connect, init_args, init_kwargs, capabilities: caps };
+        const j = await jget('/instruments', 'PUT', body);
+        out($('outEdit'), j);
+        await $('btnInstruments').onclick();
+        $('btnEditLoad').click();
+      } catch (e) {
+        out($('outEdit'), String(e));
+      }
+    };
+
+    /** ---------- health/poll ---------- **/
+    async function pingActive() {
+      if (!active) { $('pingInfo').textContent = '-'; return; }
+      try {
+        const t0 = performance.now();
+        const j = await jget('/healthz', 'GET', null, active, 4000);
+        const dt = Math.round(performance.now() - t0);
+        $('pingInfo').textContent = j.ok ? `OK ${dt}ms` : `FAIL`;
+      } catch (_) {
+        $('pingInfo').textContent = 'UNREACHABLE';
+      }
+    }
+    function refreshAll() {
+      pingActive();
+      $('btnDrivers').click();
+      $('btnInstruments').click();
+    }
+    function startAuto() {
+      stopAuto();
+      pollTimer = setInterval(() => { pingActive(); $('btnInstruments').click(); }, 5000);
+    }
+    function stopAuto() { if (pollTimer) { clearInterval(pollTimer); pollTimer = null; } }
+
+    /** ---------- boot ---------- **/
+    (async () => {
+      loadLocal();
+      // optionally load ./config.json
+      try {
+        const r = await fetch('./config.json', { cache: 'no-store' });
+        if (r.ok) {
+          const cfg = await r.json();
+          if (Array.isArray(cfg?.servers) && cfg.servers.length) {
+            const merged = [...servers];
+            for (const s of cfg.servers) {
+              const base = String(s.base || '').replace(/\/+$/, '');
+              if (base && !merged.find(x => x.base === base)) {
+                merged.push({ name: s.name || base, base });
+              }
+            }
+            setServers(merged);
+          }
+        }
+      } catch (_) { }
+      renderServers(); rebuildActiveSelect();
+      if (!active && servers.length) active = servers[0].base;
+
+      refreshAll(); startAuto();
+    })();
+  </script>
+</body>
+
+</html>

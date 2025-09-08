@@ -1,0 +1,1130 @@
+{
+  "instrument": [],
+  "driver": [
+    {
+      "id": "b19966f0-9554-51e4-b91e-c8fcfaa2da02",
+      "file": "HighFinesse.py",
+      "module": "HighFinesse",
+      "name": "HighFinesseDriver",
+      "function": [
+        "get_device_info",
+        "get_model",
+        "get_serial_number",
+        "start_measurement",
+        "stop_measurement",
+        "is_measurement_running",
+        "set_read_mode",
+        "get_read_mode",
+        "get_channels_number",
+        "get_default_channel",
+        "set_default_channel",
+        "get_frequency",
+        "get_wavelength",
+        "get_exposure_mode",
+        "set_exposure_mode",
+        "get_exposure",
+        "set_exposure",
+        "get_switcher_mode",
+        "set_switcher_mode",
+        "get_active_channel",
+        "set_active_channel",
+        "is_switcher_channel_enabled",
+        "is_switcher_channel_shown",
+        "enable_switcher_channel",
+        "get_pulse_mode",
+        "set_pulse_mode",
+        "get_precision_mode",
+        "set_precision_mode",
+        "get_measurement_interval",
+        "set_measurement_interval",
+        "calibrate",
+        "get_autocalibration_parameters",
+        "setup_autocalibration",
+        "apply_settings",
+        "get_device_variable",
+        "set_device_variable",
+        "get_full_info",
+        "get_full_status",
+        "get_settings"
+      ],
+      "meta": {
+        "class_doc": "Driver wrapper for HighFinesse WLM.\n\n\n\nThis class provides a thin, safe wrapper around the pylablib\n\nHighFinesse WLM driver, exposing a minimal and uniform interface for\n\nthe instrument server:\n\n\n\n  - `initialize()` constructs/opens the device.\n\n  - `shutdown()` closes the device.\n\n  - `is_opened()` checks if the device is responsive by probing\n\n    `get_device_info()` (robust against stale handles).\n\n\n\nAll other public methods map to the underlying driver's capabilities\n\nand are callable via RPC once the device is connected.",
+        "init": {
+          "positional_args": [],
+          "keyword_args": [
+            {
+              "name": "version",
+              "type": "Optional[str]",
+              "default": "None",
+              "choices": null
+            },
+            {
+              "name": "dll_path",
+              "type": "Optional[str]",
+              "default": "None",
+              "choices": null
+            },
+            {
+              "name": "app_path",
+              "type": "Optional[str]",
+              "default": "None",
+              "choices": null
+            },
+            {
+              "name": "autostart",
+              "type": "bool",
+              "default": "True",
+              "choices": null
+            }
+          ]
+        },
+        "functions": [
+          {
+            "name": "get_device_info",
+            "signature": "()",
+            "doc": "Get device information tuple.\n\n\n\nReturns:\n\n    tuple: Typically (model, serial, version, details).",
+            "params": []
+          },
+          {
+            "name": "get_model",
+            "signature": "()",
+            "doc": "Get device model string/code.\n\n\n\nReturns:\n\n    Any: Model identifier.",
+            "params": []
+          },
+          {
+            "name": "get_serial_number",
+            "signature": "()",
+            "doc": "Get device serial number.\n\n\n\nReturns:\n\n    Any: Serial number.",
+            "params": []
+          },
+          {
+            "name": "start_measurement",
+            "signature": "()",
+            "doc": "Start data acquisition/measurement on the WLM.",
+            "params": []
+          },
+          {
+            "name": "stop_measurement",
+            "signature": "()",
+            "doc": "Stop data acquisition/measurement on the WLM.",
+            "params": []
+          },
+          {
+            "name": "is_measurement_running",
+            "signature": "()",
+            "doc": "Check if a measurement is currently running.\n\n\n\nReturns:\n\n    bool: True if running.",
+            "params": []
+          },
+          {
+            "name": "set_read_mode",
+            "signature": "(mode)",
+            "doc": "Set the WLM read mode.\n\n\n\nArgs:\n\n    mode (str): Implementation-specific read mode (e.g., \"buffered\", \"instant\", ...).",
+            "params": [
+              {
+                "name": "mode",
+                "type": "str",
+                "default": null,
+                "choices": null
+              }
+            ]
+          },
+          {
+            "name": "get_read_mode",
+            "signature": "()",
+            "doc": "Get current read mode.\n\n\n\nReturns:\n\n    str: Read mode.",
+            "params": []
+          },
+          {
+            "name": "get_channels_number",
+            "signature": "(refresh=True)",
+            "doc": "Get number of channels.\n\n\n\nArgs:\n\n    refresh (bool): If True, query hardware; otherwise may use cached value.\n\n\n\nReturns:\n\n    int: Channel count.",
+            "params": [
+              {
+                "name": "refresh",
+                "type": "bool",
+                "default": "True",
+                "choices": null
+              }
+            ]
+          },
+          {
+            "name": "get_default_channel",
+            "signature": "()",
+            "doc": "Get default channel index.\n\n\n\nReturns:\n\n    int: Default channel.",
+            "params": []
+          },
+          {
+            "name": "set_default_channel",
+            "signature": "(channel)",
+            "doc": "Set default channel index.\n\n\n\nArgs:\n\n    channel (int): Channel number to set as default.",
+            "params": [
+              {
+                "name": "channel",
+                "type": "int",
+                "default": null,
+                "choices": null
+              }
+            ]
+          },
+          {
+            "name": "get_frequency",
+            "signature": "(channel=None, error_on_invalid=True, wait=True, timeout=5.0)",
+            "doc": "Get optical frequency.\n\n\n\nArgs:\n\n    channel (int, optional): Channel number to read from (None = default).\n\n    error_on_invalid (bool): Raise if value is invalid.\n\n    wait (bool): Wait until a valid value is available.\n\n    timeout (float): Max wait time in seconds.\n\n\n\nReturns:\n\n    float: Frequency in Hz.",
+            "params": [
+              {
+                "name": "channel",
+                "type": "Optional[int]",
+                "default": "None",
+                "choices": null
+              },
+              {
+                "name": "error_on_invalid",
+                "type": "bool",
+                "default": "True",
+                "choices": null
+              },
+              {
+                "name": "wait",
+                "type": "bool",
+                "default": "True",
+                "choices": null
+              },
+              {
+                "name": "timeout",
+                "type": "float",
+                "default": "5.0",
+                "choices": null
+              }
+            ]
+          },
+          {
+            "name": "get_wavelength",
+            "signature": "(channel=None, error_on_invalid=True, wait=True, timeout=5.0)",
+            "doc": "Get optical wavelength (vacuum).\n\n\n\nArgs:\n\n    channel (int, optional): Channel number to read from (None = default).\n\n    error_on_invalid (bool): Raise if value is invalid.\n\n    wait (bool): Wait until a valid value is available.\n\n    timeout (float): Max wait time in seconds.\n\n\n\nReturns:\n\n    float: Wavelength in meters.",
+            "params": [
+              {
+                "name": "channel",
+                "type": "Optional[int]",
+                "default": "None",
+                "choices": null
+              },
+              {
+                "name": "error_on_invalid",
+                "type": "bool",
+                "default": "True",
+                "choices": null
+              },
+              {
+                "name": "wait",
+                "type": "bool",
+                "default": "True",
+                "choices": null
+              },
+              {
+                "name": "timeout",
+                "type": "float",
+                "default": "5.0",
+                "choices": null
+              }
+            ]
+          },
+          {
+            "name": "get_exposure_mode",
+            "signature": "(channel=None)",
+            "doc": "Get current exposure mode.\n\n\n\nArgs:\n\n    channel (int, optional): Channel number (None = default).\n\n\n\nReturns:\n\n    str: Exposure mode string.",
+            "params": [
+              {
+                "name": "channel",
+                "type": "Optional[int]",
+                "default": "None",
+                "choices": null
+              }
+            ]
+          },
+          {
+            "name": "set_exposure_mode",
+            "signature": "(mode='auto', channel=None)",
+            "doc": "Set exposure mode.\n\n\n\nArgs:\n\n    mode (str): 'auto' or implementation-specific values.\n\n    channel (int, optional): Channel number (None = default).",
+            "params": [
+              {
+                "name": "mode",
+                "type": "str",
+                "default": "'auto'",
+                "choices": null
+              },
+              {
+                "name": "channel",
+                "type": "Optional[int]",
+                "default": "None",
+                "choices": null
+              }
+            ]
+          },
+          {
+            "name": "get_exposure",
+            "signature": "(sensor=1, channel=None)",
+            "doc": "Get exposure value(s).\n\n\n\nArgs:\n\n    sensor (int): Sensor index (often 1 or 2).\n\n    channel (int, optional): Channel number (None = default).\n\n\n\nReturns:\n\n    Any: Exposure level/structure as defined by pylablib.",
+            "params": [
+              {
+                "name": "sensor",
+                "type": "int",
+                "default": "1",
+                "choices": null
+              },
+              {
+                "name": "channel",
+                "type": "Optional[int]",
+                "default": "None",
+                "choices": null
+              }
+            ]
+          },
+          {
+            "name": "set_exposure",
+            "signature": "(exposure, sensor=1, channel=None)",
+            "doc": "Set exposure value(s).\n\n\n\nArgs:\n\n    exposure (Any): Exposure level/structure.\n\n    sensor (int): Sensor index.\n\n    channel (int, optional): Channel number (None = default).",
+            "params": [
+              {
+                "name": "exposure",
+                "type": "Any",
+                "default": null,
+                "choices": null
+              },
+              {
+                "name": "sensor",
+                "type": "int",
+                "default": "1",
+                "choices": null
+              },
+              {
+                "name": "channel",
+                "type": "Optional[int]",
+                "default": "None",
+                "choices": null
+              }
+            ]
+          },
+          {
+            "name": "get_switcher_mode",
+            "signature": "()",
+            "doc": "Get switcher mode.\n\n\n\nReturns:\n\n    str: Switcher mode string.",
+            "params": []
+          },
+          {
+            "name": "set_switcher_mode",
+            "signature": "(mode='on')",
+            "doc": "Set switcher mode.\n\n\n\nArgs:\n\n    mode (str): Mode value (e.g., 'on', 'off', ...).",
+            "params": [
+              {
+                "name": "mode",
+                "type": "str",
+                "default": "'on'",
+                "choices": null
+              }
+            ]
+          },
+          {
+            "name": "get_active_channel",
+            "signature": "()",
+            "doc": "Get currently active channel.\n\n\n\nReturns:\n\n    int: Active channel number.",
+            "params": []
+          },
+          {
+            "name": "set_active_channel",
+            "signature": "(channel, automode=True)",
+            "doc": "Set active channel.\n\n\n\nArgs:\n\n    channel (int): Channel number to activate.\n\n    automode (bool): Whether to adapt switcher automatically.",
+            "params": [
+              {
+                "name": "channel",
+                "type": "int",
+                "default": null,
+                "choices": null
+              },
+              {
+                "name": "automode",
+                "type": "bool",
+                "default": "True",
+                "choices": null
+              }
+            ]
+          },
+          {
+            "name": "is_switcher_channel_enabled",
+            "signature": "(channel, automode=True)",
+            "doc": "Check if a channel is enabled for switcher.\n\n\n\nArgs:\n\n    channel (int): Channel number.\n\n    automode (bool): Auto mode flag.\n\n\n\nReturns:\n\n    bool: True if enabled.",
+            "params": [
+              {
+                "name": "channel",
+                "type": "int",
+                "default": null,
+                "choices": null
+              },
+              {
+                "name": "automode",
+                "type": "bool",
+                "default": "True",
+                "choices": null
+              }
+            ]
+          },
+          {
+            "name": "is_switcher_channel_shown",
+            "signature": "(channel, automode=True)",
+            "doc": "Check if a channel is shown in switcher rotation.\n\n\n\nArgs:\n\n    channel (int): Channel number.\n\n    automode (bool): Auto mode flag.\n\n\n\nReturns:\n\n    bool: True if shown.",
+            "params": [
+              {
+                "name": "channel",
+                "type": "int",
+                "default": null,
+                "choices": null
+              },
+              {
+                "name": "automode",
+                "type": "bool",
+                "default": "True",
+                "choices": null
+              }
+            ]
+          },
+          {
+            "name": "enable_switcher_channel",
+            "signature": "(channel, enable=True, show=None, automode=True)",
+            "doc": "Enable/disable a switcher channel and optionally show it.\n\n\n\nArgs:\n\n    channel (int): Channel number.\n\n    enable (bool): Enable or disable the channel.\n\n    show (bool, optional): Whether to include the channel in rotation.\n\n    automode (bool): Auto mode flag.",
+            "params": [
+              {
+                "name": "channel",
+                "type": "int",
+                "default": null,
+                "choices": null
+              },
+              {
+                "name": "enable",
+                "type": "bool",
+                "default": "True",
+                "choices": null
+              },
+              {
+                "name": "show",
+                "type": "Optional[bool]",
+                "default": "None",
+                "choices": null
+              },
+              {
+                "name": "automode",
+                "type": "bool",
+                "default": "True",
+                "choices": null
+              }
+            ]
+          },
+          {
+            "name": "get_pulse_mode",
+            "signature": "()",
+            "doc": "Get pulse mode.\n\n\n\nReturns:\n\n    str: Pulse mode string.",
+            "params": []
+          },
+          {
+            "name": "set_pulse_mode",
+            "signature": "(mode)",
+            "doc": "Set pulse mode.\n\n\n\nArgs:\n\n    mode (str): Pulse mode value.",
+            "params": [
+              {
+                "name": "mode",
+                "type": "str",
+                "default": null,
+                "choices": null
+              }
+            ]
+          },
+          {
+            "name": "get_precision_mode",
+            "signature": "()",
+            "doc": "Get precision mode.\n\n\n\nReturns:\n\n    str: Precision mode string.",
+            "params": []
+          },
+          {
+            "name": "set_precision_mode",
+            "signature": "(mode)",
+            "doc": "Set precision mode.\n\n\n\nArgs:\n\n    mode (str): Precision mode value.",
+            "params": [
+              {
+                "name": "mode",
+                "type": "str",
+                "default": null,
+                "choices": null
+              }
+            ]
+          },
+          {
+            "name": "get_measurement_interval",
+            "signature": "()",
+            "doc": "Get measurement interval setting.\n\n\n\nReturns:\n\n    Any: Interval structure/value as defined by pylablib.",
+            "params": []
+          },
+          {
+            "name": "set_measurement_interval",
+            "signature": "(interval=None)",
+            "doc": "Set measurement interval.\n\n\n\nArgs:\n\n    interval (Any): Interval structure/value as defined by pylablib.",
+            "params": [
+              {
+                "name": "interval",
+                "type": null,
+                "default": "None",
+                "choices": null
+              }
+            ]
+          },
+          {
+            "name": "calibrate",
+            "signature": "(source_type, source_frequency, channel=None)",
+            "doc": "Perform calibration using a known source.\n\n\n\nArgs:\n\n    source_type (str): Calibration source type.\n\n    source_frequency (float): Known source frequency (Hz).\n\n    channel (int, optional): Channel to calibrate (None = default).",
+            "params": [
+              {
+                "name": "source_type",
+                "type": "str",
+                "default": null,
+                "choices": null
+              },
+              {
+                "name": "source_frequency",
+                "type": "float",
+                "default": null,
+                "choices": null
+              },
+              {
+                "name": "channel",
+                "type": "Optional[int]",
+                "default": "None",
+                "choices": null
+              }
+            ]
+          },
+          {
+            "name": "get_autocalibration_parameters",
+            "signature": "()",
+            "doc": "Get autocalibration parameters.\n\n\n\nReturns:\n\n    Any: Parameters structure/value as defined by pylablib.",
+            "params": []
+          },
+          {
+            "name": "setup_autocalibration",
+            "signature": "(enable=True, unit=None, period=None)",
+            "doc": "Configure autocalibration.\n\n\n\nArgs:\n\n    enable (bool): Enable/disable autocalibration.\n\n    unit (str, optional): Period unit (implementation-specific).\n\n    period (Any, optional): Period value/structure.",
+            "params": [
+              {
+                "name": "enable",
+                "type": "bool",
+                "default": "True",
+                "choices": null
+              },
+              {
+                "name": "unit",
+                "type": "Optional[str]",
+                "default": "None",
+                "choices": null
+              },
+              {
+                "name": "period",
+                "type": "Optional[Any]",
+                "default": "None",
+                "choices": null
+              }
+            ]
+          },
+          {
+            "name": "apply_settings",
+            "signature": "(settings)",
+            "doc": "Apply a dictionary of device settings.\n\n\n\nArgs:\n\n    settings (dict): Settings to apply.",
+            "params": [
+              {
+                "name": "settings",
+                "type": "dict",
+                "default": null,
+                "choices": null
+              }
+            ]
+          },
+          {
+            "name": "get_device_variable",
+            "signature": "(key)",
+            "doc": "Get a device variable by key.\n\n\n\nArgs:\n\n    key (str): Variable key.\n\n\n\nReturns:\n\n    Any: Value associated with the key.",
+            "params": [
+              {
+                "name": "key",
+                "type": "str",
+                "default": null,
+                "choices": null
+              }
+            ]
+          },
+          {
+            "name": "set_device_variable",
+            "signature": "(key, value)",
+            "doc": "Set a device variable.\n\n\n\nArgs:\n\n    key (str): Variable key.\n\n    value (Any): New value.",
+            "params": [
+              {
+                "name": "key",
+                "type": "str",
+                "default": null,
+                "choices": null
+              },
+              {
+                "name": "value",
+                "type": "Any",
+                "default": null,
+                "choices": null
+              }
+            ]
+          },
+          {
+            "name": "get_full_info",
+            "signature": "(include=0)",
+            "doc": "Get full device info structure.\n\n\n\nArgs:\n\n    include (int): Implementation-specific flag for extra details.\n\n\n\nReturns:\n\n    dict: Comprehensive info dictionary.",
+            "params": [
+              {
+                "name": "include",
+                "type": null,
+                "default": "0",
+                "choices": null
+              }
+            ]
+          },
+          {
+            "name": "get_full_status",
+            "signature": "(include=0)",
+            "doc": "Get full device status structure.\n\n\n\nArgs:\n\n    include (int): Implementation-specific flag for extra details.\n\n\n\nReturns:\n\n    dict: Comprehensive status dictionary.",
+            "params": [
+              {
+                "name": "include",
+                "type": null,
+                "default": "0",
+                "choices": null
+              }
+            ]
+          },
+          {
+            "name": "get_settings",
+            "signature": "(include=0)",
+            "doc": "Get current device settings.\n\n\n\nArgs:\n\n    include (int): Implementation-specific flag for extra details.\n\n\n\nReturns:\n\n    dict: Settings dictionary.",
+            "params": [
+              {
+                "name": "include",
+                "type": null,
+                "default": "0",
+                "choices": null
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "e37177aa-353a-5d87-a626-5f22b5c6841d",
+      "file": "Mcculw_USB3104.py",
+      "module": "Mcculw_USB3104",
+      "name": "McculwDriver",
+      "function": [
+        "set_analog_output",
+        "get_analog_output",
+        "set_digital_output",
+        "get_digital_output",
+        "get_last_error"
+      ],
+      "meta": {
+        "class_doc": "Driver wrapper for MCC USB-31xx (e.g., USB-3104/3114) analog & digital outputs.\n\nThis class exposes a uniform interface for the instrument server:\n  - `initialize()` binds the MCC UL board, configures AO ranges and one DO port.\n  - `shutdown()` releases the board.\n  - `is_opened()` verifies responsiveness by probing harmless board queries\n    (`ul.get_board_name` and `DaqDeviceInfo(...).product_name`).",
+        "init": {
+          "positional_args": [],
+          "keyword_args": [
+            {
+              "name": "board_num",
+              "type": "int",
+              "default": "0",
+              "choices": null
+            },
+            {
+              "name": "ao_channels",
+              "type": "int",
+              "default": "8",
+              "choices": null
+            },
+            {
+              "name": "voltage_range",
+              "type": "str",
+              "default": "'BIP10VOLTS'",
+              "choices": null
+            },
+            {
+              "name": "use_device_detection",
+              "type": "bool",
+              "default": "True",
+              "choices": null
+            },
+            {
+              "name": "dev_id_list",
+              "type": "Optional[list]",
+              "default": "None",
+              "choices": null
+            }
+          ]
+        },
+        "functions": [
+          {
+            "name": "set_analog_output",
+            "signature": "(channel, voltage)",
+            "doc": "Set analog output voltage on a channel (software-caches last written value).\n\nArgs:\n    channel (int): AO channel index.\n    voltage (float): Output voltage.\nReturns:\n    dict: {\"channel\": int, \"voltage\": float}",
+            "params": [
+              {
+                "name": "channel",
+                "type": "int",
+                "default": null,
+                "choices": null
+              },
+              {
+                "name": "voltage",
+                "type": "float",
+                "default": null,
+                "choices": null
+              }
+            ]
+          },
+          {
+            "name": "get_analog_output",
+            "signature": "(channel)",
+            "doc": "Return last written AO voltage from software cache.\n\nArgs:\n    channel (int): AO channel index.\nReturns:\n    float | None: Last written voltage if available.",
+            "params": [
+              {
+                "name": "channel",
+                "type": "int",
+                "default": null,
+                "choices": null
+              }
+            ]
+          },
+          {
+            "name": "set_digital_output",
+            "signature": "(value)",
+            "doc": "Write to the first output-capable digital port.\n\nArgs:\n    value (int): Raw port value (e.g., 0..255 for 8-bit port).\nReturns:\n    dict: {\"port\": \"<port_type>\", \"value\": int}",
+            "params": [
+              {
+                "name": "value",
+                "type": "int",
+                "default": null,
+                "choices": null
+              }
+            ]
+          },
+          {
+            "name": "get_digital_output",
+            "signature": "()",
+            "doc": "Return last written digital port value from software cache.\n\nReturns:\n    int | None: Last written port value if available.",
+            "params": []
+          },
+          {
+            "name": "get_last_error",
+            "signature": "()",
+            "doc": "Return last cached error string if any.\n\nReturns:\n    str: Last error message.",
+            "params": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "581f6a48-8c0d-5018-aa7c-244cd09ede99",
+      "file": "Spincore.py",
+      "module": "Spincore",
+      "name": "SpinCoreDriver",
+      "function": [
+        "get_board_info",
+        "reset",
+        "start",
+        "stop",
+        "start_programming",
+        "stop_programming",
+        "get_last_error",
+        "execute"
+      ],
+      "meta": {
+        "class_doc": "SpinCore PulseBlaster wrapper.\n\nThis class provides a safe, uniform interface to SpinAPI for the instrument server:\n  - `initialize()` selects the board, initializes it and sets the core clock.\n  - `shutdown()` stops any running program and closes the library if supported.\n  - `is_opened()` robustly probes the board by calling harmless SpinAPI queries\n    (e.g. `pb_get_version()` / `pb_get_firmware_id()`).\n\nArgs:\n    board_number (int): board index (0-based).\n    core_clock_mhz (float): core clock in MHz (e.g., 100.0).\n    debug (int): spinapi debug level (0: off).",
+        "init": {
+          "positional_args": [],
+          "keyword_args": [
+            {
+              "name": "board_number",
+              "type": "int",
+              "default": "0",
+              "choices": null
+            },
+            {
+              "name": "core_clock_mhz",
+              "type": "float",
+              "default": "100.0",
+              "choices": null
+            },
+            {
+              "name": "debug",
+              "type": "int",
+              "default": "0",
+              "choices": null
+            }
+          ]
+        },
+        "functions": [
+          {
+            "name": "get_board_info",
+            "signature": "()",
+            "doc": "Return basic board/library information for diagnostics.\n\nReturns:\n    dict: {\"board_number\", \"version\", \"firmware_id\", \"board_count\"}",
+            "params": []
+          },
+          {
+            "name": "reset",
+            "signature": "()",
+            "doc": "pb_reset()",
+            "params": []
+          },
+          {
+            "name": "start",
+            "signature": "()",
+            "doc": "pb_start()",
+            "params": []
+          },
+          {
+            "name": "stop",
+            "signature": "()",
+            "doc": "pb_stop()",
+            "params": []
+          },
+          {
+            "name": "start_programming",
+            "signature": "()",
+            "doc": "pb_start_programming(PULSE_PROGRAM)",
+            "params": []
+          },
+          {
+            "name": "stop_programming",
+            "signature": "()",
+            "doc": "pb_stop_programming()",
+            "params": []
+          },
+          {
+            "name": "get_last_error",
+            "signature": "()",
+            "doc": "Return last cached error string (if any).",
+            "params": []
+          },
+          {
+            "name": "execute",
+            "signature": "(data)",
+            "doc": "Compile and (optionally) run a PulseBlaster program.\n\nEach item in 'data' must be a dict with keys:\n  - \"sequence\": list of <=24 ints (0/1), bit0..bit23 (LSB first).\n                (If your list is MSB->LSB, reverse it before passing.)\n  - \"sequence type\": spinapi instruction name, e.g. \"WAIT\", \"CONTINUE\", \"BRANCH\", \"LOOP\", ...\n  - \"sequence times\": instruction data (e.g., loop count / branch addr / etc.)\n  - \"time range\": length (float)\n  - \"time scale\": time unit, one of \"ns\"/\"us\"/\"ms\"/\"s\", or a numeric seconds multiplier\n\nReturns:\n    List[int]: instruction handles returned by pb_inst_pbonly.",
+            "params": [
+              {
+                "name": "data",
+                "type": "List[Dict[str, Any]]",
+                "default": null,
+                "choices": null
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "a47e9ce1-70eb-59f5-aba4-87b64fa4c5ca",
+      "file": "SynthHD.py",
+      "module": "SynthHD",
+      "name": "SynthHDDriver",
+      "function": [
+        "get_last_error",
+        "get_info",
+        "set_reference_mode",
+        "get_reference_mode",
+        "set_trigger_mode",
+        "get_trigger_mode",
+        "set_reference_frequency",
+        "get_reference_frequency",
+        "set_sweep_enable",
+        "set_am_enable",
+        "set_pulse_mod_enable",
+        "set_fm_enable",
+        "set_channel_frequency",
+        "get_channel_frequency",
+        "set_channel_power",
+        "get_channel_power",
+        "set_channel_phase",
+        "get_channel_phase",
+        "enable_channel_output",
+        "get_channel_lock_status"
+      ],
+      "meta": {
+        "class_doc": "Windfreak SynthHD wrapper for the instrument server.\n\nNotes\n-----\n* This driver opens the device lazily in `initialize()`.\n* `is_opened()` returns False if probing basic device info fails.\n* Channel index is 0 or 1 (SynthHD has two outputs).",
+        "init": {
+          "positional_args": [],
+          "keyword_args": [
+            {
+              "name": "devpath",
+              "type": "Optional[str]",
+              "default": "None",
+              "choices": null
+            },
+            {
+              "name": "reset_on_connect",
+              "type": "bool",
+              "default": "False",
+              "choices": null
+            }
+          ]
+        },
+        "functions": [
+          {
+            "name": "get_last_error",
+            "signature": "()",
+            "doc": "Return last cached error string (if any).",
+            "params": []
+          },
+          {
+            "name": "get_info",
+            "signature": "()",
+            "doc": "Return device info: model, serial_number, firmware_version, hardware_version, model_type.",
+            "params": []
+          },
+          {
+            "name": "set_reference_mode",
+            "signature": "(mode)",
+            "doc": "Set reference mode.\nExample values (library dependent): 'external', 'internal 27mhz', 'internal 10mhz'.",
+            "params": [
+              {
+                "name": "mode",
+                "type": "str",
+                "default": null,
+                "choices": null
+              }
+            ]
+          },
+          {
+            "name": "get_reference_mode",
+            "signature": "()",
+            "doc": "Get current reference mode.",
+            "params": []
+          },
+          {
+            "name": "set_trigger_mode",
+            "signature": "(mode)",
+            "doc": "Set trigger mode (library dependent string).",
+            "params": [
+              {
+                "name": "mode",
+                "type": "str",
+                "default": null,
+                "choices": null
+              }
+            ]
+          },
+          {
+            "name": "get_trigger_mode",
+            "signature": "()",
+            "doc": "Get trigger mode.",
+            "params": []
+          },
+          {
+            "name": "set_reference_frequency",
+            "signature": "(frequency_hz)",
+            "doc": "Set external reference frequency in Hz.",
+            "params": [
+              {
+                "name": "frequency_hz",
+                "type": "float",
+                "default": null,
+                "choices": null
+              }
+            ]
+          },
+          {
+            "name": "get_reference_frequency",
+            "signature": "()",
+            "doc": "Get external reference frequency in Hz.",
+            "params": []
+          },
+          {
+            "name": "set_sweep_enable",
+            "signature": "(enable)",
+            "doc": "Enable/disable sweep globally.",
+            "params": [
+              {
+                "name": "enable",
+                "type": "bool",
+                "default": null,
+                "choices": null
+              }
+            ]
+          },
+          {
+            "name": "set_am_enable",
+            "signature": "(enable)",
+            "doc": "Enable/disable AM globally.",
+            "params": [
+              {
+                "name": "enable",
+                "type": "bool",
+                "default": null,
+                "choices": null
+              }
+            ]
+          },
+          {
+            "name": "set_pulse_mod_enable",
+            "signature": "(enable)",
+            "doc": "Enable/disable pulse modulation globally.",
+            "params": [
+              {
+                "name": "enable",
+                "type": "bool",
+                "default": null,
+                "choices": null
+              }
+            ]
+          },
+          {
+            "name": "set_fm_enable",
+            "signature": "(enable)",
+            "doc": "Enable/disable FM globally.",
+            "params": [
+              {
+                "name": "enable",
+                "type": "bool",
+                "default": null,
+                "choices": null
+              }
+            ]
+          },
+          {
+            "name": "set_channel_frequency",
+            "signature": "(channel_index, frequency_hz)",
+            "doc": "Set RF frequency of a given channel.\n\nArgs:\n    channel_index: 0 or 1\n    frequency_hz: Frequency in Hz (typical SynthHD range 54e6..13.6e9).",
+            "params": [
+              {
+                "name": "channel_index",
+                "type": "int",
+                "default": null,
+                "choices": null
+              },
+              {
+                "name": "frequency_hz",
+                "type": "float",
+                "default": null,
+                "choices": null
+              }
+            ]
+          },
+          {
+            "name": "get_channel_frequency",
+            "signature": "(channel_index)",
+            "doc": "Get RF frequency (Hz) of a given channel.",
+            "params": [
+              {
+                "name": "channel_index",
+                "type": "int",
+                "default": null,
+                "choices": null
+              }
+            ]
+          },
+          {
+            "name": "set_channel_power",
+            "signature": "(channel_index, power_dbm)",
+            "doc": "Set RF output power (dBm) of a given channel.",
+            "params": [
+              {
+                "name": "channel_index",
+                "type": "int",
+                "default": null,
+                "choices": null
+              },
+              {
+                "name": "power_dbm",
+                "type": "float",
+                "default": null,
+                "choices": null
+              }
+            ]
+          },
+          {
+            "name": "get_channel_power",
+            "signature": "(channel_index)",
+            "doc": "Get RF output power (dBm) of a given channel.",
+            "params": [
+              {
+                "name": "channel_index",
+                "type": "int",
+                "default": null,
+                "choices": null
+              }
+            ]
+          },
+          {
+            "name": "set_channel_phase",
+            "signature": "(channel_index, phase_deg)",
+            "doc": "Set RF phase (deg) of a given channel.",
+            "params": [
+              {
+                "name": "channel_index",
+                "type": "int",
+                "default": null,
+                "choices": null
+              },
+              {
+                "name": "phase_deg",
+                "type": "float",
+                "default": null,
+                "choices": null
+              }
+            ]
+          },
+          {
+            "name": "get_channel_phase",
+            "signature": "(channel_index)",
+            "doc": "Get RF phase (deg) of a given channel.",
+            "params": [
+              {
+                "name": "channel_index",
+                "type": "int",
+                "default": null,
+                "choices": null
+              }
+            ]
+          },
+          {
+            "name": "enable_channel_output",
+            "signature": "(channel_index, enable=True)",
+            "doc": "Enable/disable RF output path on a channel (rf/pa/pll together).\n\nReturns:\n    dict: {\"channel\": int, \"enabled\": bool}",
+            "params": [
+              {
+                "name": "channel_index",
+                "type": "int",
+                "default": null,
+                "choices": null
+              },
+              {
+                "name": "enable",
+                "type": "bool",
+                "default": "True",
+                "choices": null
+              }
+            ]
+          },
+          {
+            "name": "get_channel_lock_status",
+            "signature": "(channel_index)",
+            "doc": "Return PLL lock status of a given channel.",
+            "params": [
+              {
+                "name": "channel_index",
+                "type": "int",
+                "default": null,
+                "choices": null
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "instrument_state": []
+}

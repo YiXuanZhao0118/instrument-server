@@ -1,0 +1,6 @@
+fastapi
+uvicorn
+pylablib
+windfreak
+mcculw
+spinapi
